@@ -1,0 +1,192 @@
+# AgenticPOS API Test Commands
+# This file contains test commands for all API endpoints
+# Copy and paste these commands into your terminal to test endpoints
+
+echo "=== Testing AgenticPOS API Endpoints ==="
+echo ""
+
+# PRODUCT MANAGEMENT API ENDPOINTS
+echo "=== PRODUCT MANAGEMENT API ==="
+
+# 1. GET /api/v1/products - List all products (paginated)
+echo "1. GET /api/v1/products - List all products (paginated)"
+curl -s "http://localhost:8080/api/v1/products?page=0&size=3&sortBy=name&sortDir=asc" | python3 -m json.tool
+echo ""
+
+# 2. GET /api/v1/products/{id} - Get product by ID
+echo "2. GET /api/v1/products/1 - Get product by ID"
+curl -s "http://localhost:8080/api/v1/products/1" | python3 -m json.tool
+echo ""
+
+# 3. GET /api/v1/products/low-stock - Get low stock products
+echo "3. GET /api/v1/products/low-stock - Get low stock products"
+curl -s "http://localhost:8080/api/v1/products/low-stock" | python3 -m json.tool
+echo ""
+
+# 4. GET /api/v1/products/search - Search products
+echo "4. GET /api/v1/products/search - Search products by keyword"
+curl -s "http://localhost:8080/api/v1/products/search?keyword=coffee&page=0&size=5" | python3 -m json.tool
+echo ""
+
+# 5. POST /api/v1/products - Create new product
+echo "5. POST /api/v1/products - Create new product"
+curl -s -X POST "http://localhost:8080/api/v1/products" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Test Product API",
+    "description": "A test product created via API",
+    "price": 29.99,
+    "stockQuantity": 15,
+    "lowStockThreshold": 5,
+    "category": "Test Category",
+    "sku": "TEST-API-001",
+    "active": true
+  }' | python3 -m json.tool
+echo ""
+
+# 6. PUT /api/v1/products/{id} - Update product
+echo "6. PUT /api/v1/products/1 - Update product"
+curl -s -X PUT "http://localhost:8080/api/v1/products/1" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Premium Coffee Beans - Updated",
+    "price": 18.99,
+    "stockQuantity": 75
+  }' | python3 -m json.tool
+echo ""
+
+# 7. GET /api/v1/products/category/{category} - Get products by category
+echo "7. GET /api/v1/products/category/Electronics - Get products by category"
+curl -s "http://localhost:8080/api/v1/products/category/Electronics?page=0&size=5" | python3 -m json.tool
+echo ""
+
+# 8. GET /api/v1/products/sku/{sku} - Get product by SKU
+echo "8. GET /api/v1/products/sku/COFFEE-001 - Get product by SKU"
+curl -s "http://localhost:8080/api/v1/products/sku/COFFEE-001" | python3 -m json.tool
+echo ""
+
+# 9. GET /api/v1/products/price-range - Get products by price range
+echo "9. GET /api/v1/products/price-range - Get products by price range"
+curl -s "http://localhost:8080/api/v1/products/price-range?minPrice=5.00&maxPrice=20.00&page=0&size=5" | python3 -m json.tool
+echo ""
+
+# 10. Test validation error - Create product with invalid data
+echo "10. POST /api/v1/products - Test validation error (negative price)"
+curl -s -X POST "http://localhost:8080/api/v1/products" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "",
+    "price": -10.50,
+    "stockQuantity": -5
+  }' | python3 -m json.tool
+echo ""
+
+# 11. Test duplicate SKU error
+echo "11. POST /api/v1/products - Test duplicate SKU error"
+curl -s -X POST "http://localhost:8080/api/v1/products" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Duplicate SKU Product",
+    "price": 15.99,
+    "stockQuantity": 10,
+    "sku": "COFFEE-001"
+  }' | python3 -m json.tool
+echo ""
+
+# 12. DELETE /api/v1/products/{id} - Delete product (soft delete)
+echo "12. DELETE /api/v1/products/6 - Delete product (if exists)"
+curl -s -X DELETE "http://localhost:8080/api/v1/products/6"
+echo "Delete response (204 No Content expected)"
+echo ""
+
+# 13. Test getting deleted product (should return 404)
+echo "13. GET /api/v1/products/6 - Try to get deleted product"
+curl -s "http://localhost:8080/api/v1/products/6" | python3 -m json.tool
+echo ""
+
+# 14. Test 404 for non-existent product
+echo "14. GET /api/v1/products/999 - Test 404 for non-existent product"
+curl -s "http://localhost:8080/api/v1/products/999" | python3 -m json.tool
+echo ""
+
+# TRANSACTION MANAGEMENT API ENDPOINTS
+echo "=== TRANSACTION MANAGEMENT API ==="
+echo ""
+
+# 1. GET /api/v1/transactions - List all transactions
+echo "1. GET /api/v1/transactions - List all transactions (paginated)"
+curl -s "http://localhost:8080/api/v1/transactions?page=0&size=5&sortBy=createdAt&sortDir=desc" | python3 -m json.tool
+echo ""
+
+# 2. POST /api/v1/transactions/sale - Process sale transaction
+echo "2. POST /api/v1/transactions/sale - Process sale transaction"
+curl -s -X POST "http://localhost:8080/api/v1/transactions/sale" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "locationId": 1,
+    "customerId": "CUST-001",
+    "items": [
+      {
+        "productId": 1,
+        "quantity": 2,
+        "unitPrice": 10.50
+      },
+      {
+        "productId": 2,
+        "quantity": 1,
+        "unitPrice": 5.99
+      }
+    ],
+    "paymentMethod": "CASH",
+    "notes": "Test sale transaction"
+  }' | python3 -m json.tool
+echo ""
+
+# 3. POST /api/v1/transactions/purchase - Process purchase transaction
+echo "3. POST /api/v1/transactions/purchase - Process purchase transaction"
+curl -s -X POST "http://localhost:8080/api/v1/transactions/purchase" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "locationId": 1,
+    "supplierId": "SUPP-001",
+    "items": [
+      {
+        "productId": 1,
+        "quantity": 50,
+        "unitPrice": 8.00
+      }
+    ],
+    "paymentMethod": "BANK_TRANSFER",
+    "notes": "Bulk purchase for inventory"
+  }' | python3 -m json.tool
+echo ""
+
+# 4. POST /api/v1/transactions/return - Process return transaction
+echo "4. POST /api/v1/transactions/return - Process return transaction"
+curl -s -X POST "http://localhost:8080/api/v1/transactions/return" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "originalTransactionId": 1,
+    "locationId": 1,
+    "items": [
+      {
+        "productId": 1,
+        "quantity": 1,
+        "unitPrice": 10.50,
+        "reason": "Defective item"
+      }
+    ],
+    "refundMethod": "CASH",
+    "notes": "Customer returned defective item"
+  }' | python3 -m json.tool
+echo ""
+
+# 5. GET /api/v1/transactions/{id} - Get transaction details
+echo "5. GET /api/v1/transactions/1 - Get transaction details by ID"
+curl -s "http://localhost:8080/api/v1/transactions/1" | python3 -m json.tool
+echo ""
+
+echo "=== TRANSACTION API TESTING COMPLETE ==="
+echo ""
+
+echo "=== API Testing Complete ==="
